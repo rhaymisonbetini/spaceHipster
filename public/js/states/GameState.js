@@ -47,6 +47,7 @@ SpaceHipster.GameState = {
   update: function () {
 
     this.game.physics.arcade.overlap(this.bulletsGame, this.enemies, this.damangeEnemy, null, this);
+    this.game.physics.arcade.overlap(this.enemyBullets, this.player, this.killPlayer, null, this);
 
 
     //ouvindo as entradas do usuario para calculo de direcao
@@ -76,7 +77,11 @@ SpaceHipster.GameState = {
   initiEnemys: function () {
     this.enemies = this.add.group();
     this.enemies.enableBody = true;
-    var enemy = new SpaceHipster.Enemy(this.game, 100, 100, 'greenEnemy', 10, []);
+
+    this.enemyBullets = this.add.group();
+    this.enemyBullets.enableBody = true;
+
+    var enemy = new SpaceHipster.Enemy(this.game, 100, 100, 'greenEnemy', 10, this.enemyBullets);
     this.enemies.add(enemy);
     enemy.body.velocity.x = 100;
     enemy.body.velocity.y = 50;
@@ -85,5 +90,10 @@ SpaceHipster.GameState = {
   damangeEnemy: function (bullet, enemy) {
     enemy.damage(1);
     bullet.kill();
+  },
+
+  killPlayer: function () {
+    this.player.kill();
+    this.game.state.start('GameState');
   }
 }
