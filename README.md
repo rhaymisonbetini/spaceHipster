@@ -20,7 +20,7 @@ Jogo criado em Javascript utilizando a biblioteca Phaser.js.  Projeto para fins 
 
 # Sobre o jogo
 
-O jogo trata-se de uma nave espacial que deve defender a terra de alienigenas invasores. Criado inicialmente para rodar em plataformas celulares se for jogado pelo pc a seta do mouse precisonada o o clique torna-se o direcional de acordado com os espaçamentos da tela.
+O jogo trata-se de uma nave espacial que deve defender a terra de alienigenas invasores. Criado inicialmente para rodar em plataformas celulares. Se for jogado pelo pc a seta do mouse  e o clique torna-se o direcional de acordado com os espaçamento da tela.
 
 # Instalação
 
