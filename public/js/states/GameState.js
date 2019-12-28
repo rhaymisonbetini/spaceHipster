@@ -2,12 +2,15 @@ var SpaceHipster = SpaceHipster || {};
 
 SpaceHipster.GameState = {
 
-  init: function () {
+  init: function (currentLevel) {
     this.scale.scaleModule = Phaser.ScaleManager.SHOW_ALL;
     this.game.physics.startSystem(Phaser.Physics.ARCADE);
 
     this.PLAYER_SPEED = 200;
     this.BULLET_SPEED = -1000;
+
+    this.numLevels = 3;
+    this.currentLevel = currentLevel ? currentLevel : 1;
   },
 
 
@@ -19,6 +22,12 @@ SpaceHipster.GameState = {
     this.load.spritesheet('yellowEnemy', 'assets/images/yellow_enemy.png', 50, 46, 3, 1, 1)
     this.load.spritesheet('redEnemy', 'assets/images/red_enemy.png', 50, 46, 3, 1, 1)
     this.load.spritesheet('greenEnemy', 'assets/images/green_enemy.png', 50, 46, 3, 1, 1)
+
+    this.load.text('level1', 'js/jsons/level1.json');
+    this.load.text('level2', 'js/jsons/level2.json');
+    this.load.text('level3', 'js/jsons/level3.json');
+
+    this.load.audio('orchestra', ['assets/audio/8bit-orchestra.mp3', 'assets/audio/8bit-orchestra.ogg']);
   },
 
 
@@ -42,6 +51,10 @@ SpaceHipster.GameState = {
     //criando pscina de alienigenas
     this.initiEnemys();
 
+    //Load Level
+    this.loadLevel();
+    this.orchestra = this.add.audio('orchestra');
+    this.orchestra.play();
   },
 
   update: function () {
@@ -80,11 +93,6 @@ SpaceHipster.GameState = {
 
     this.enemyBullets = this.add.group();
     this.enemyBullets.enableBody = true;
-
-    var enemy = new SpaceHipster.Enemy(this.game, 100, 100, 'greenEnemy', 10, this.enemyBullets);
-    this.enemies.add(enemy);
-    enemy.body.velocity.x = 100;
-    enemy.body.velocity.y = 50;
   },
 
   damangeEnemy: function (bullet, enemy) {
@@ -95,5 +103,48 @@ SpaceHipster.GameState = {
   killPlayer: function () {
     this.player.kill();
     this.game.state.start('GameState');
+    this.orchestra.stop();
+  },
+
+  createEnemy: function (x, y, health, key, scale, speedX, speedY) {
+    let enemyer = this.enemies.getFirstExists(false);
+    if (!enemyer) {
+      enemyer = new SpaceHipster.Enemy(this.game, x, y, key, health, this.enemyBullets);
+      this.enemies.add(enemyer);
+    }
+    enemyer.reset(x, y, health, key, scale, speedX, speedY);
+
+  },
+
+  loadLevel: function () {
+    this.currentEnemyIndex = 0;
+    this.levelData = JSON.parse(this.game.cache.getText('level' + this.currentLevel));
+    this.endOfLevelTime = this.game.time.events.add(this.levelData.duration * 1000, () => {
+      this.orchestra.stop();
+      if (this.currentLevel < this.numLevels) {
+        this.currentLevel++;
+      } else {
+        this.currentLevel = -1;
+      }
+      this.game.state.start('GameState', true, false, this.currentLevel);
+    }, this);
+
+    this.scheduleNextEnemy();
+
+  },
+
+  scheduleNextEnemy: function () {
+    var nextEnemy = this.levelData.enemies[this.currentEnemyIndex];
+
+    if (nextEnemy) {
+      var nextTime = 1000 * (nextEnemy.time - (this.currentEnemyIndex == 0 ? 0 : this.levelData.enemies[this.currentEnemyIndex - 1].time));
+
+      this.nextEnemyTimer = this.game.time.events.add(nextTime, function () {
+        this.createEnemy(nextEnemy.x * this.game.world.width, -100, nextEnemy.health, nextEnemy.key, nextEnemy.scale, nextEnemy.speedX, nextEnemy.speedY);
+
+        this.currentEnemyIndex++;
+        this.scheduleNextEnemy();
+      }, this);
+    }
   }
 }
